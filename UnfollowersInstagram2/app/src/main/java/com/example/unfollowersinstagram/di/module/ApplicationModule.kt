@@ -1,0 +1,83 @@
+package com.example.unfollowersinstagram.di.module
+
+import android.content.Context
+import androidx.room.Room
+import com.example.mercadolibreapp.data.repository.FakeRepository
+import com.example.mercadolibreapp.data.repository.ProductRepositoryImpl
+import com.example.mercadolibreapp.data.room.Database
+import com.example.mercadolibreapp.data.service.ApiClient
+import com.example.mercadolibreapp.data.service.ApiServiceProduct
+import com.example.mercadolibreapp.data.source.ProductLocalSource
+import com.example.mercadolibreapp.data.source.ProductLocalSourceImpl
+import com.example.mercadolibreapp.data.source.ProductRemoteSource
+import com.example.mercadolibreapp.data.source.ProductRemoteSourceImpl
+import com.example.mercadolibreapp.domain.usecase.GetProductsBySearchUseCase
+import com.example.mercadolibreapp.domain.usecase.GetProductsBySearchUseCaseImpl
+import com.example.mercadolibreapp.domain.repository.ProductRepository
+import com.example.mercadolibreapp.domain.usecase.GetProductDetailsUseCase
+import com.example.mercadolibreapp.domain.usecase.GetProductDetailsUseCaseImpl
+import com.example.mercadolibreapp.helpers.Constants.BASE_URL
+import com.example.mercadolibreapp.helpers.Constants.isRunningTest
+import com.example.mercadolibreapp.helpers.NetworkHelper
+import com.example.unfollowersinstagram.data.service.ApiClient
+import com.example.unfollowersinstagram.data.service.ApiServiceFollower
+import com.example.unfollowersinstagram.helpers.Constants.BASE_URL
+import dagger.Module
+import dagger.Provides
+import javax.inject.Singleton
+
+/**
+ * @author Axel Sanchez
+ */
+@Module
+class ApplicationModule(private val context: Context){
+    @Provides
+    @Singleton
+    fun provideProductRepository(productLocalSource: ProductLocalSource, productRemoteSource: ProductRemoteSource): ProductRepository{
+        return if (isRunningTest) FakeRepository()
+        else ProductRepositoryImpl(productRemoteSource, productLocalSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductRemoteSource(productRemoteSource: ProductRemoteSourceImpl): ProductRemoteSource = productRemoteSource
+
+    @Provides
+    @Singleton
+    fun provideGetAllProductsUseCase(getAllProductsUseCase: GetProductsBySearchUseCaseImpl): GetProductsBySearchUseCase = getAllProductsUseCase
+
+    @Provides
+    @Singleton
+    fun provideGetProductUseCase(getProductUseCase: GetProductDetailsUseCaseImpl): GetProductDetailsUseCase = getProductUseCase
+
+    @Provides
+    @Singleton
+    fun provideApiServiceProduct(): ApiServiceFollower {
+        return ApiClient.Builder<ApiServiceFollower>()
+            .setBaseUrl(BASE_URL)
+            .setApiService(ApiServiceFollower::class.java)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(context: Context): Database {
+        return Room
+            .databaseBuilder(context, Database::class.java, "MercadoLibreDB.db4")
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductLocalSource(database: Database): ProductLocalSource {
+        return ProductLocalSourceImpl(database.productDao())
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkHelper(context: Context) = NetworkHelper(context)
+
+    @Provides
+    @Singleton
+    fun provideContext(): Context = context
+}
