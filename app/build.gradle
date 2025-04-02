@@ -1,7 +1,7 @@
 plugins {
+    id 'com.android.library'
+    id 'maven-publish'
     id 'org.jetbrains.kotlin.android'
-    id("com.android.library") // Si es un módulo de librería
-    id("maven-publish")
 }
 
 android {
@@ -12,7 +12,7 @@ android {
         minSdk 24
         targetSdk 33
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.0.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -64,13 +64,13 @@ dependencies {
 
 publishing {
     publications {
-        release(MavenPublication) {
+        create("release", MavenPublication) {
             afterEvaluate {
                 from components.findByName("default")
             }
             groupId = 'com.github.axel-sanchez'
             artifactId = 'AppKit'
-            version = '1.0.0'
+            version = '1.0.2'
         }
     }
 }
